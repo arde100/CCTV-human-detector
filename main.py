@@ -1,8 +1,14 @@
 import numpy as np
 import cv2
+import os
+import time
+from datetime import datetime
 
-detection_interval = 30
-recording_length = 150
+fps = 8
+
+detection_interval = 1 * fps
+recording_length = 5 * fps
+max_recording_length = 60 * fps
 
 current_rects = None
 
@@ -15,13 +21,13 @@ hog.setSVMDetector(cv2.HOGDescriptor.getDefaultPeopleDetector())
 recorder = None
 
 cv2.startWindowThread()
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("rtsp://admin:lakanalakana@192.168.1.12:554//h264Preview_01_sub")
 
 while True:
 
     # Reading the frame
     ret, frame = cap.read()
-    if current_frame % detection_interval == 0:
+    if True:
         human_detected = False
         # using a greyscale picture, also for faster detection
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
@@ -34,7 +40,7 @@ while True:
 
         current_rects = []
         for w, (xA, yA, xB, yB) in zip(weights, boxes):
-            if w < 1.0:
+            if w < 0.3:
                 continue
             human_detected = True
             # display the detected boxes in the colour picture
@@ -49,10 +55,14 @@ while True:
                               (0, 255, 0), 2)
         cv2.putText(frame, "rec", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, color=(0,0,255))
         if not recorder:
-            recorder = cv2.VideoWriter('output_%s.avi'%current_frame, cv2.VideoWriter_fourcc(*'MJPG'), 30., (640, 480))
+            final_frame = current_frame + max_recording_length
+            recorder = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(*'MJPG'), fps, (480, 640))
         recorder.write(frame)
-        if recording_end_frame == current_frame:
+        if recording_end_frame <= current_frame or current_frame >= final_frame:
             recorder.release()
+            print("video released")
+            os.rename('output.avi', 'output_%s.avi'%datetime.now().strftime("%Y-%m-%d_%H%M%S"))
+            print("file renamed")
             recorder = None
 
     # displaying the frame
