@@ -16,12 +16,15 @@ print("videoUploader.py is ready!")
 
 while True:
     is_file_uploaded = False
-    for file in os.listdir("."):
-        if file.endswith(".avi") and not file == "output.avi":
-            uploadFile(file)
-            print("Uploaded file " + file)
-            os.remove(file)
-            print("Removed file" + file)
-            is_file_uploaded = True
+    try:
+        for file in os.listdir("."):
+            if file.endswith(".avi") and not file == "output.avi":
+                uploadFile(file)
+                print("Uploaded file " + file)
+                os.remove(file)
+                print("Removed file" + file)
+                is_file_uploaded = True
+    except:
+        pass
     if not is_file_uploaded:
         time.sleep(5)
